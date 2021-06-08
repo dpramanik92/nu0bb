@@ -76,11 +76,21 @@ for n in tqdm(N_dist_ih):
 
 T_ih = np.array(T_ih)
 
+plt.xlabel('T')
 plt.hist(T_nh,bins=50,color='r',alpha=0.5)
 plt.hist(T_ih,bins=50,color='g',alpha=0.5)
 plt.show()
 
+T_med = np.median(T_nh)
+sens_ih = nd.edf(T_med,T_ih,'IH')
 
+
+T_med = np.median(T_ih)
+sens_nh = nd.edf(T_med,T_nh,'NH')
+
+print('Median sensitivity for NH true:',sens_nh*100)
+
+print('Median sensitivity for IH true:',sens_ih*100)
 
 
 

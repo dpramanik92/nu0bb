@@ -55,11 +55,15 @@ def thalf(X,hier='NH',nucl='Xe'):
 
     return Thalf
 
-def edf(x,dist):
+def edf(x,dist,hier):
     j=0
     for i in dist:
-        if(i<=x):
-            j=j+1
+        if(hier=='IH'):
+            if(i<=x):
+                j=j+1
+        if(hier=='NH'):
+            if(i>=x):
+                j = j+1
 
     return float(j)/float(len(dist))
 
@@ -137,11 +141,11 @@ class Statistics:
 
     def Calculate_Ntest(self):
 
-        th12 = np.arange(31,36,0.1)
+        th12 = np.arange(31,36,0.2)
         th13 = np.array([8.5])
         ml = np.array([0.0001])
         dsol = np.array([7.5])
-        datm = np.arange(2.4,2.6,0.01)
+        datm = np.array([2.52])
         alp = np.arange(0,np.pi,0.1)
         bet = np.arange(0,np.pi,0.1)
 
@@ -160,8 +164,8 @@ class Statistics:
                                     test_params = np.array([t12*np.pi/180.0,
                                         t13*np.pi/180.0,m,sol,atm,al,be,self.mnu])
 
-                                    self.N_nh = Nevents(test_params,'NH',self.nucl,self.exp,self.bkg)
-                                    self.N_ih = Nevents(test_params,'IH',self.nucl,self.exp,self.bkg)
+                                    self.N_nh.append(Nevents(test_params,'NH',self.nucl,self.exp,self.bkg))
+                                    self.N_ih.append(Nevents(test_params,'IH',self.nucl,self.exp,self.bkg))
 
         self.N_nh = np.array(self.N_nh)
         self.N_ih = np.array(self.N_ih)
