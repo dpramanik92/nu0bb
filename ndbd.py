@@ -223,12 +223,12 @@ class Statistics:
         
         fig,ax = plt.subplots()
         ax.set_xlabel('T',size=20)
-        title_stream = 'Exp = '+str(self.exp)+';Bkg = '+str(self.bkg)+';Nucl = '+self.nucl+r';$M_{\nu}$ = '+str(self.mnu)
+        title_stream = self.experi + r'; $M_{\nu}=$'+str(self.mnu)
         ax.set_title(title_stream,size=20)
         ax.hist(T1,bins=50,color='r',alpha=0.6,label='IH True')
         ax.hist(T2,bins=50,color='g',alpha=0.6,label='NH True')
     
-        plot_stream = self.out_plot+'/exp_'+str(self.exp)+'_bkg_'+str(self.bkg)+'_'+self.nucl+'_'+str(self.mnu)+'.png'
+        plot_stream = self.out_plot+'/'+self.experi+'_'+str(self.mnu)+'.png'
         plt.savefig(plot_stream)
         
         med = np.median(T2)
