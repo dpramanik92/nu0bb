@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import progressbar
 import timeit
 from tqdm import *
+import os
 
 def mbb(X,hier='NH'):
     s12 = (np.sin(X[0]))**2.0
@@ -131,11 +132,19 @@ def poiss_likelihood(n_tr,n_te):
     return p
 
 class Statistics:
-    def __init__(self,_nucl,_mnu,_exp,_bkg):
+    def __init__(self,_nucl,_mnu,_exp,_bkg,Experiment):
+        self.experi = Experiment
         self.nucl=_nucl
         self.exp = _exp
         self.bkg = _bkg
         self.mnu = _mnu
+        
+        outpath = os.path.expanduser('~/Documents/nu0bb/data/')
+        Create_output_folders(outpath)
+        
+        self.out_data = outpath + '/data_files'
+        self.out_plot = outpath + '/plots'
+
 
 
 
@@ -176,6 +185,7 @@ class Statistics:
         return chi
 
     def Test_statistics(self,n_tr):
+    
         chi_min_nh = self.chi_sq_min(n_tr,self.N_nh)
         chi_min_ih = self.chi_sq_min(n_tr,self.N_ih)
 
@@ -189,6 +199,44 @@ class Statistics:
         n_tr = Nevents(X,hier,self.nucl,self.exp,self.bkg)
         print('The numebr of expected events for ',hier,' = ',n_tr)
         return n_tr
+        
+        
+    def sensitivity_one(self,mbb_nh,mbb_ih,sample):
+        nevents_nh = expected_events(mbb_nh,self.mnu,self.nucl,self.exp,self.bkg)
+        nevents_ih = expected_events(mbb_ih,self.mnu,self.nucl,self.exp,self.bkg)
+
+        N_dist1 = np.random.poisson(nevents_nh,sample)
+        N_dist2 = np.random.poisson(nevents_ih,sample)
+        
+        T1 = []
+        T2 = []
+        
+        for n_tr in tqdm(N_dist1):
+            T1.append(self.Test_statistics(n_tr))
+            
+        T1 = np.array(T1)
+        
+        for n_tr in tqdm(N_dist2):
+            T2.append(self.Test_statistics(n_tr))
+            
+        T2 = np.array(T2)
+        
+        fig,ax = plt.subplots()
+        ax.set_xlabel('T',size=20)
+        title_stream = 'Exp = '+str(self.exp)+';Bkg = '+str(self.bkg)+';Nucl = '+self.nucl+r';$M_{\nu}$ = '+str(self.mnu)
+        ax.set_title(title_stream,size=20)
+        ax.hist(T1,bins=50,color='r',alpha=0.6,label='IH True')
+        ax.hist(T2,bins=50,color='g',alpha=0.6,label='NH True')
+    
+        plot_stream = self.out_plot+'/exp_'+str(self.exp)+'_bkg_'+str(self.bkg)+'_'+self.nucl+'_'+str(self.mnu)+'.png'
+        plt.savefig(plot_stream)
+        
+        med = np.median(T2)
+        
+        sens = edf(med,T1,'IH')
+        
+        return sens
+        
 
 
 
@@ -225,6 +273,36 @@ def sensitivity(mbb):
     sens = edf(med,T1)
 
     return sens*100
+
+
+def Create_output_folders(_outpath):
+
+    isFile = os.path.isdir(_outpath)
+
+
+    if(isFile!=True):
+        print('Output Folder does not exist..')
+        s = [1.0]
+        for i in tqdm(s):
+
+            plot_path = _outpath +'/plots'
+            data_path = _outpath + '/data_files'
+            os.makedirs(plot_path)
+            os.makedirs(data_path)
+
+        print('Output folder created with path:',_outpath)
+    else:
+        print('Output folder already exists at path: ',_outpath)
+
+def Clean_output_folders(_output):
+
+    if(os.path.isdir(_outpath)!=False):
+        shutil.rmtree(_outpath)
+        print('Output path removed...')
+    else:
+        print('Path does not exists')
+
+
 
 
 ################################################################################
