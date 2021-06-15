@@ -235,8 +235,40 @@ class Statistics:
         
         sens = edf(med,T1,'IH')
         
-        return sens
+        print("The hierarchy sensitivity when IH is true: ",sens*100," %")
         
+        med = np.median(T1)
+        
+        sens = edf(med,T2,'NH')
+        
+        print("The hierarchy sensitivity when NH is true: ",sens*100," %")
+        
+
+    def discProbability(self,mbbe,sample):
+        nevents = expected_events(mbbe,self.mnu,self.nucl,self.exp,self.bkg)
+        
+        N_dist1 = np.random.poisson(nevents,sample)
+        
+        T1 = []
+        
+        for n_tr in tqdm(N_dist1):
+            T1.append(self.Test_statistics(n_tr))
+            
+        T1 = np.array(T1)
+        
+        prob_ih = edf(-9,T1,'IH')
+        prob_nh = edf(9,T1,'NH')
+        
+        return prob_ih,prob_nh
+        
+    
+        
+        
+        
+        
+
+
+
 
 
 
