@@ -161,9 +161,9 @@ class Statistics:
         self.N_nh = []
         self.N_ih = []
 
-        print('Calculating test events...')
+   #     print('Calculating test events...')
 
-        for t12 in tqdm(th12):
+        for t12 in th12:
             for t13 in th13:
                 for m in ml:
                     for sol in dsol:
@@ -243,6 +243,78 @@ class Statistics:
         
         print("The hierarchy sensitivity when NH is true: ",sens*100," %")
         
+    def get3sigmaSens(self,mbb_nh,Exp,Bkg,sample):
+    
+        self.exp = Exp
+        self.bkg = Bkg
+
+        self.Calculate_Ntest()
+        nevents_nh = expected_events(mbb_nh,self.mnu,self.nucl,self.exp,self.bkg)
+        N_dist_nh = np.random.poisson(nevents_nh,sample)
+        
+
+        T_nh = []
+        for n in N_dist_nh:
+            T_nh.append(self.Test_statistics(n))
+            
+        T_nh = np.array(T_nh)
+        
+        med_nh = np.median(T_nh)
+        
+
+        mbb_ih = 0.046
+        
+        sens = 1.0
+        
+        while(sens>0.9973 and mbb_ih>=0.015):
+            nevents_ih = expected_events(mbb_ih,self.mnu,self.nucl,self.exp,self.bkg)
+
+            N_dist_ih = np.random.poisson(nevents_ih,sample)
+            
+            T_ih = []
+            
+            for n in N_dist_ih:
+                T_ih.append(self.Test_statistics(n))
+                
+            T_ih = np.array(T_ih)
+            
+            sens = edf(med_nh,T_ih,'IH')
+            mbb_ih = mbb_ih-0.001
+            
+        return mbb_ih,sens
+
+
+        
+    def make_3sigmasens(self,mbb_nh,sample):
+        
+        X = []
+        Y = []
+        Z = []
+        
+        count = np.arange(0,2500)
+        
+        for i in tqdm(count):
+            i_x = int(i/50)
+            i_y = i%50
+            
+            x = 1 + i_x*5.0/49
+            y = 0 + i_y*3.0/49
+            
+            _mbb,_sens = self.get3sigmaSens(mbb_nh,10**x,10**y,sample)
+            X.append(10**x)
+            Y.append(10**y)
+            Z.append(_mbb)
+
+        X = np.array(X)
+        Y = np.array(Y)
+        Z = np.array(Z)
+        
+        data_stream = self.out_data + '/three_sig_' + self.nucl + '_' + str(self.mnu) + '.dat'
+        
+        np.savetxt(data_stream,np.transpose([X,Y,Z]),delimiter='\t')
+
+        
+
 
     def discProbability(self,mbbe,sample):
         nevents = expected_events(mbbe,self.mnu,self.nucl,self.exp,self.bkg)
@@ -251,7 +323,7 @@ class Statistics:
         
         T1 = []
         
-        for n_tr in tqdm(N_dist1):
+        for n_tr in N_dist1:
             T1.append(self.Test_statistics(n_tr))
             
         T1 = np.array(T1)
@@ -261,8 +333,27 @@ class Statistics:
         
         return prob_ih,prob_nh
         
-    
+    def plotDiscProbability(self,sample):
+        x = np.arange(-3.0,0.0,0.01)
         
+        y = []
+        
+        for i in tqdm(x):
+            y.append(self.discProbability(10**i,sample))
+            
+        y = np.array(y)
+        
+        fig,ax = plt.subplots()
+        ax.set_xscale('log')
+        ax.set_xlabel(r'$m_{\beta\beta}$',size=20)
+        ax.set_ylabel('Discovery Probability',size=20)
+        title_stream = self.experi + r'; $M_{\nu}=$'+str(self.mnu)
+        ax.set_title(title_stream,size=20)
+        ax.plot(10**x,y.T[0],c='r',label='IH')
+        ax.plot(10**x,y.T[1],c='g',label='NH')
+        
+        plot_stream = self.out_plot+'/disc_'+self.experi+'_'+str(self.mnu)+'.eps'
+        plt.savefig(plot_stream)
         
         
         
