@@ -291,16 +291,17 @@ class Statistics:
         Y = []
         Z = []
         
-        count = np.arange(0,2500)
+        count = np.arange(0,400)
         
         for i in tqdm(count):
-            i_x = int(i/50)
-            i_y = i%50
+            i_x = int(i/20)
+            i_y = i%20
             
-            x = 1 + i_x*5.0/49
-            y = 0 + i_y*3.0/49
+            x = 1 + i_x*5.0/19
+            y = -5.0 + i_y*6.0/19
             
-            _mbb,_sens = self.get3sigmaSens(mbb_nh,10**x,10**y,sample)
+            Bg = (10**x)*(10**y)
+            _mbb,_sens = self.get3sigmaSens(mbb_nh,10**x,Bg,sample)
             X.append(10**x)
             Y.append(10**y)
             Z.append(_mbb)
@@ -357,11 +358,6 @@ class Statistics:
         
         
         
-
-
-
-
-
 
 def Test_signal(n_tr,n_h0,n_h1):
     chi_0 = poiss_likelihood(n_tr,n_h0)

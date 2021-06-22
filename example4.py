@@ -40,8 +40,8 @@ class data_set:
 
         return 0
 
-#stat = nd.Statistics('Xe',4.8 ,10000,10.0,'Hypo')
-#stat.make_3sigmasens(0.004,1000)
+stat = nd.Statistics('Xe',4.8 ,10000,10.0,'Hypo')
+stat.make_3sigmasens(0.004,1000)
 
 outpath = os.path.expanduser('~/Documents/nu0bb/data/data_files')
 file1 = outpath + '/three_sig_Xe_4.8.dat'
