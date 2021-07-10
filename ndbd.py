@@ -4,6 +4,7 @@ import progressbar
 import timeit
 from tqdm import *
 import os
+from multiprocessing import Pool
 
 def mbb(X,hier='NH'):
     s12 = (np.sin(X[0]))**2.0
@@ -284,35 +285,55 @@ class Statistics:
         return mbb_ih,sens
 
 
+    def parallel_wrap(self,mbb_nh,points):
         
-    def make_3sigmasens(self,mbb_nh,sample):
+        
+        _mbb,_sens = self.get3sigmaSens(mbb_nh,points[0],points[1],self.sample)
+        
+        return _mbb
+        
+        
+        
+    def make_3sigmasens(self,mbb_nh,_sample):
+        
+        self.sample = _sample
         
         X = []
         Y = []
         Z = []
         
-        count = np.arange(0,400)
+        count = np.arange(0,100)
         
-        for i in tqdm(count):
-            i_x = int(i/20)
-            i_y = i%20
+        for i in count:
+            i_x = int(i/10)
+            i_y = i%10
             
-            x = 1 + i_x*5.0/19
-            y = -5.0 + i_y*6.0/19
+            x = 1 + i_x*5.0/9
+            y = 0.0 + i_y*2.0/9
             
-            Bg = (10**x)*(10**y)
-            _mbb,_sens = self.get3sigmaSens(mbb_nh,10**x,Bg,sample)
-            X.append(10**x)
-            Y.append(10**y)
-            Z.append(_mbb)
-
+            X.append(x)
+            Y.append(y)
+            
         X = np.array(X)
         Y = np.array(Y)
-        Z = np.array(Z)
         
-        data_stream = self.out_data + '/three_sig_' + self.nucl + '_' + str(self.mnu) + '.dat'
+        _points = np.array([X,Y])
         
-        np.savetxt(data_stream,np.transpose([X,Y,Z]),delimiter='\t')
+        p = Pool(processes=2)
+
+        with tqdm(total=len(_points[0])) as pbar:
+            for i,res in tqdm(enumerate(p.imap(self.parallel_wrap,_points[0]))):
+                pbar.update()
+                Z = np.array(Z,res)
+                
+                
+        
+        
+        
+        
+        #data_stream = self.out_data + '/three_sig_' + self.nucl + '_' + str(self.mnu) + '.dat'
+        
+        #np.savetxt(data_stream,np.transpose([X,Y,Z]),delimiter='\t')
 
         
 
